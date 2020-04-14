@@ -1,18 +1,28 @@
 version: 2.1
-orbs:
-  node: circleci/node@1.1.6
-jobs:
-  build-and-test:
-    executor:
-      name: node/default
+commands:
+  install_deps:
     steps:
-      - checkout
-      - node/with-cache:
-           steps:
-      - checkout
-      - run: npm install
-      - run: mkdir ~/junit 
-      - run: npm run test-unit 
+      - run:
+          name: Install dependencies
+          command: |
+            npm install
+
+jobs:
+  ci-build:
+    docker:
+      - image: circleci/node:lts
+    environment:
+      MOCHA_JUNIT_OUTPUT_DIR: test-output
+    steps:
+      - checkout 
+      - install_deps
+  
+      - run:
+          name: Run test-unit
+          command: |
+            mkdir -p test-output
+            npm run test-unit 
+
       - run:
           command: mocha test --reporter mocha-junit-reporter
           environment:
@@ -22,8 +32,22 @@ jobs:
           path: ~/junit
       - store_artifacts:
           path: ~/junit 
+            
+  
+  pack:
+    docker:
+      - image: circleci/node:lts
+    environment:
+      NODE_ENV: production
+    steps:
+      - checkout
+      - install_deps
+      - store_artifacts:
+          path: ./
 
 workflows:
-    build-and-test:
-      jobs:
-        - build-and-test
+  build-and-packge:
+    jobs:
+      - ci-build
+    
+      
