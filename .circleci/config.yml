@@ -22,18 +22,8 @@ jobs:
           command: |
             mkdir -p test-output
             npm run test-unit 
-
-      - run:
-          command: mocha test --reporter mocha-junit-reporter
-          environment:
-            MOCHA_FILE: ~/junit/test-results.xml
-          when: always
-      - store_test_results:
-          path: ~/junit
-      - store_artifacts:
-          path: ~/junit 
             
-  
+            
   pack:
     docker:
       - image: circleci/node:lts
