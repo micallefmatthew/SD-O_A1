@@ -28,7 +28,7 @@ jobs:
       - run:
           name: Validate Coverage
           command: |
-            bash <(curl -s https://codecov.io/bash)
+            npm run test-coverage
 
       - store_test_results:
           path: test-output
