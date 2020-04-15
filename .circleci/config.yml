@@ -16,14 +16,44 @@ jobs:
     steps:
       - checkout 
       - install_deps
-  
       - run:
-          name: Run test-unit
+          name: Run lint
+          command: npm run test-lint
+      - run:
+          name: Run unit tests
           command: |
             mkdir -p test-output
-            npm run test-unit 
+            npm run test-unit
             
-            
+      - run:
+          name: Validate Coverage
+          command: |
+            bash <(curl -s https://codecov.io/bash)
+
+      - store_test_results:
+          path: test-output
+
+  integration-tests:
+    docker:
+      - image: circleci/node:lts
+      - image: mongo:4.0
+    environment:
+      APP_PORT: 4000
+      MOCHA_JUNIT_OUTPUT_DIR: test-output
+    steps:
+      - checkout
+      - install_deps
+      - run:
+          name: Run integration tests
+          command: |
+            mkdir -p test-output
+            npm run test-integration
+
+      - store_test_results:
+          path: test-output
+
+  
+
   pack:
     docker:
       - image: circleci/node:lts
@@ -39,5 +69,16 @@ workflows:
   build-and-packge:
     jobs:
       - ci-build
-    
-      
+      - test-integration:
+          requires:
+            - ci-build
+      - sast:
+          requires:
+            - ci-build
+      - pack:
+          requires:
+            - test-integration
+          filters:
+            branches:
+              only:
+                - master
