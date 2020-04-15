@@ -48,15 +48,4 @@ workflows:
   build-and-packge:
     jobs:
       - ci-build
-      - test-integration:
-          requires:
-            - ci-build
-      - sast:
-          requires:
-            - ci-build
-      - pack:
-          
-          filters:
-            branches:
-              only:
-                - master
+      
