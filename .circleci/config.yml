@@ -1,17 +1,43 @@
 version: 2.1
-orbs:
-  node: circleci/node@1.1.6
+commands:
+  install_deps:
+    steps:
+      - run:
+          name: Install dependencies
+          command: |
+            npm install
+
 jobs:
-  build-and-test:
-    executor:
-      name: node/default
+  ci-build:
+    docker:
+      - image: circleci/node:lts
+    environment:
+      MOCHA_JUNIT_OUTPUT_DIR: test-output
+    steps:
+      - checkout 
+      - install_deps
+  
+      - run:
+          name: Run test-unit
+          command: |
+            mkdir -p test-output
+            npm run test-unit 
+            
+            
+  pack:
+    docker:
+      - image: circleci/node:lts
+    environment:
+      NODE_ENV: production
     steps:
       - checkout
-      - node/with-cache:
-          steps:
-            - run: npm install
-            - run: npm test
+      - install_deps
+      - store_artifacts:
+          path: ./
+
 workflows:
-    build-and-test:
-      jobs:
-        - build-and-test
+  build-and-packge:
+    jobs:
+      - ci-build
+    
+      
