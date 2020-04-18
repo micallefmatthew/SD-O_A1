@@ -11,8 +11,7 @@ jobs:
   ci-build:
     docker:
       - image: circleci/node:lts
-    environment:
-      MOCHA_JUNIT_OUTPUT_DIR: test-output
+    
     steps:
       - checkout 
       - install_deps
@@ -22,7 +21,6 @@ jobs:
       - run:
           name: Run unit tests
           command: |
-            mkdir -p test-output
             npm run test-unit
             
       - run:
