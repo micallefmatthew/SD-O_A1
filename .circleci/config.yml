@@ -11,7 +11,8 @@ jobs:
   ci-build:
     docker:
       - image: circleci/node:lts
-    
+    environment:
+      MOCHA_JUNIT_OUTPUT_DIR: test-output
     steps:
       - checkout 
       - install_deps
@@ -21,6 +22,7 @@ jobs:
       - run:
           name: Run unit tests
           command: |
+            mkdir -p test-output
             npm run test-unit
             
       - run:
@@ -31,19 +33,41 @@ jobs:
       - store_test_results:
           path: test-output
 
-  pack:
+  integration-tests:
     docker:
       - image: circleci/node:lts
+      - image: circleci/postgres
     environment:
-      NODE_ENV: production
+      APP_PORT: 4000
+      MOCHA_JUNIT_OUTPUT_DIR: test-output
+    steps:
+      - checkout 
+      - install_deps
+      - run:
+          name: run tests
+          command: |
+            npm run test-unit
+            
+  sast:
+    docker:
+      - image: circleci/node:lts
     steps:
       - checkout
-      - install_deps
-      - store_artifacts:
-          path: ./
-
+      - run:
+          name: Install eslint
+          command: |
+            sudo npm install -g eslint
+            npm install eslint-plugin-node@latest --save-dev
+      - run:
+          name: Run eslint
+          command: |
+            eslint ./ 
+          
 workflows:
   build-and-packge:
     jobs:
       - ci-build
-      
+      - integration-tests:
+          requires:
+            - ci-build
+      - sast
